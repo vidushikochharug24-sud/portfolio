@@ -1,12 +1,50 @@
-const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add("visible");observer.unobserve(e.target)}})},{threshold:.12});
-document.querySelectorAll(".reveal").forEach(el=>{el.style.opacity="0";el.style.transform="translateY(18px)";el.style.transition="opacity .7s ease, transform .7s ease";observer.observe(el)});
-const style=document.createElement("style");style.textContent=".reveal.visible{opacity:1!important;transform:none!important}";document.head.appendChild(style);
+const motionObserver=new IntersectionObserver(entries=>{
+	entries.forEach(entry=>{
+		if(entry.isIntersecting){
+			entry.target.classList.add("visible");
+			motionObserver.unobserve(entry.target);
+		}
+	});
+},{threshold:.12});
+
+const motionSelectors=[
+	".reveal",
+	".section-head",
+	".project",
+	".about-lead",
+	".facts div",
+	".proof-card",
+	".path-entry",
+	".contact-card"
+];
+document.querySelectorAll(motionSelectors.join(",")).forEach((element,index)=>{
+	element.classList.add("motion-reveal");
+	element.style.setProperty("--reveal-delay",`${(index % 5) * 70}ms`);
+	motionObserver.observe(element);
+});
 
 const intro=document.getElementById("intro");
 const enterButton=document.querySelector(".intro-skip");
-const enterPortfolio=()=>document.body.classList.add("intro-done");
+const enterPortfolio=()=>{
+	document.body.classList.add("intro-done");
+	document.querySelectorAll(".hero .reveal").forEach(element=>element.classList.add("visible"));
+};
 enterButton.addEventListener("click",enterPortfolio);
 setTimeout(enterPortfolio,7500);
+if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)enterPortfolio();
+
+const progressBar=document.querySelector(".scroll-progress span");
+let progressFrame;
+const updateProgress=()=>{
+	if(progressFrame)return;
+	progressFrame=requestAnimationFrame(()=>{
+		const scrollable=document.documentElement.scrollHeight-window.innerHeight;
+		progressBar.style.transform=`scaleX(${scrollable>0?window.scrollY/scrollable:0})`;
+		progressFrame=null;
+	});
+};
+window.addEventListener("scroll",updateProgress,{passive:true});
+updateProgress();
 
 const systemStates=[
 	["EMBEDDED","MCU · SENSOR · GPIO"],
